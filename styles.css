@@ -187,12 +187,19 @@ h3 {
 }
 .page-hero h1 {
   font-size: clamp(2.4rem, 4.2vw, 4rem);
+  margin-bottom: 8px;
 }
 .page-hero .eyebrow {
   font-size: 0.95rem;
 }
 .page-hero .lead {
   max-width: none;
+}
+.page-hero .eyebrow + .lead {
+  margin-top: 4px;
+}
+.page-hero h1 + .lead {
+  margin-top: 0;
 }
 .prose {
   max-width: 760px;
