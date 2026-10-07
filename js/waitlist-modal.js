@@ -73,6 +73,7 @@ function initWaitlistModal() {
     status.textContent = "";
     status.classList.remove("is-error", "is-success");
     form.hidden = false;
+    submitButton.disabled = false;
     overlay.querySelector(".waitlist-dismiss").hidden = false;
     emailInput.value = "";
     emailInput.focus();
