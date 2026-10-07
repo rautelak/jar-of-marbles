@@ -136,16 +136,13 @@ function initWaitlistModal() {
       form.hidden = true;
       overlay.querySelector(".waitlist-dismiss").hidden = true;
     } catch (error) {
-      if (error.code === "permission-denied") {
-        status.textContent = "Looks like you're already on the list — thanks!";
-        status.classList.add("is-success");
-        form.hidden = true;
-        overlay.querySelector(".waitlist-dismiss").hidden = true;
-      } else {
-        status.textContent = "Something went wrong. Please try again in a moment.";
-        status.classList.add("is-error");
-        submitButton.disabled = false;
-      }
+      console.error("Waitlist signup failed:", error.code, error.message);
+      status.textContent =
+        error.code === "permission-denied"
+          ? "We couldn't add that email. If you've signed up before, you're already on the list. Otherwise, please try again later."
+          : "Something went wrong. Please try again in a moment.";
+      status.classList.add("is-error");
+      submitButton.disabled = false;
     }
   });
 }
