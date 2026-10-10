@@ -20,7 +20,11 @@
   function fit() {
     const stage = box.parentElement;
     const avail = stage.clientWidth;
-    scale = Math.min(1, avail / 320);
+    const wrapStyle = getComputedStyle(document.querySelector('.wrap'));
+    const chromeH = parseFloat(wrapStyle.paddingTop) + parseFloat(wrapStyle.paddingBottom)
+      + parseFloat(wrapStyle.rowGap || 0) + caption.offsetHeight;
+    const byHeight = (innerHeight - chromeH) / 660;
+    scale = Math.max(0.45, Math.min(1, avail / 320, byHeight));
     box.style.transform = `scale(${scale})`;
     box.style.width = '320px';
     box.style.height = '660px';
