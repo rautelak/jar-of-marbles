@@ -12,12 +12,12 @@ Before launch:
 2. Review and customize privacy.html to match the app's actual data practices.
 3. Review terms.html and consider legal review.
 4. Add a real support/privacy contact method.
-5. Deploy these files as a static site to Cloudflare Pages.
+5. Deploy these files to Cloudflare (see "Cloudflare deployment" below).
 
-Cloudflare Pages build settings (so .git, .claude and README.txt are not published):
-- Build command:          mkdir -p dist && cp -r *.html styles.css js images _headers dist/
-- Build output directory: dist
-- Add any new top-level site file or folder to the cp command above.
-- Security headers (CSP, HSTS, etc.) live in _headers. If you add a new external script,
-  API or image host, add it to the Content-Security-Policy there.
+Cloudflare deployment (Workers static assets, connected to this GitHub repo):
+- The whole repo root is uploaded as the site. .assetsignore keeps .git, .claude and README.txt
+  out of the deployment; add anything else that should not be public to it.
+- Security headers (CSP, HSTS, etc.) live in _headers, which Cloudflare applies but does not serve.
+  If you add a new external script, API or image host, add it to the Content-Security-Policy there.
 - In Cloudflare: SSL/TLS > Edge Certificates > Always Use HTTPS = On.
+- After deploying, check that /.git/config returns 404.
