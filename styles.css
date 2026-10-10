@@ -389,3 +389,53 @@ h3 {
   text-decoration: underline;
   cursor: pointer;
 }
+.how {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 64px;
+  align-items: center;
+}
+.how-steps {
+  margin: 24px 0 0;
+  padding-left: 20px;
+  color: var(--muted);
+}
+.how-steps li {
+  margin-bottom: 14px;
+}
+.how-steps b {
+  color: var(--text);
+}
+.how-demo {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  height: 830px;
+  border: 0;
+  margin: 0 auto;
+  background: transparent;
+}
+@media (max-width: 820px) {
+  .how {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+.author {
+  width: 102px;
+  margin: 20px 0 0 auto;
+  text-align: center;
+}
+.author img {
+  display: block;
+  width: 102px;
+  height: 102px;
+  border-radius: 18px;
+  object-fit: cover;
+  border: 3px solid var(--surface-2);
+}
+.author figcaption {
+  margin-top: 8px;
+  font-weight: 650;
+  color: var(--text);
+}
