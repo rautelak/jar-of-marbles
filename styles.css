@@ -421,3 +421,21 @@ h3 {
     gap: 32px;
   }
 }
+.author {
+  width: 102px;
+  margin: 20px 0 0 auto;
+  text-align: center;
+}
+.author img {
+  display: block;
+  width: 102px;
+  height: 102px;
+  border-radius: 18px;
+  object-fit: cover;
+  border: 3px solid var(--surface-2);
+}
+.author figcaption {
+  margin-top: 8px;
+  font-weight: 650;
+  color: var(--text);
+}
