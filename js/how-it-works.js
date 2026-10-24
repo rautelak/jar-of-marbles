@@ -91,6 +91,14 @@
     { y: 160, xs: [70, 109, 148] }, { y: 124, xs: [66, 105, 144] }, { y: 88, xs: [105] },
   ];
   const colours = ['coral', 'amber', 'sage', 'moss'];
+  // No two marbles look the same: a small, stable shift in hue, brightness and band angle,
+  // in the same ranges the app uses (MarbleView.init(marble:)).
+  function jitter(el, seed) {
+    const r = k => { const v = Math.sin(seed * 12.9898 + k * 78.233) * 43758.5453; return v - Math.floor(v); };
+    el.style.setProperty('--hue', ((r(1) - .5) * 55).toFixed(1) + 'deg');
+    el.style.setProperty('--bright', (1 + (r(2) - .5) * .16).toFixed(3));
+    el.style.setProperty('--tilt', ((r(3) - .5) * 36).toFixed(1) + 'deg');
+  }
   const pile = $('pile');
   let n = 0;
   rows.forEach(r => r.xs.forEach(x => {
@@ -98,6 +106,7 @@
     m.className = 'marble ' + colours[n++ % 4];
     m.style.setProperty('--s', SIZE + 'px');
     m.style.left = x - SIZE / 2 + 'px'; m.style.top = r.y - SIZE / 2 + 'px';
+    jitter(m, n);
     pile.appendChild(m);
   }));
   const jarMarbles = [...pile.children];

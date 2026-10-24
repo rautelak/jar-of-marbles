@@ -94,20 +94,34 @@
   .tab svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .tab.on { color: var(--accent); }
 
-  /* marbles */
+  /* marbles: the same layers as the app's MarbleView (Components.swift), bottom to top:
+     pale glass, a coloured band across the middle at the style's angle, a bright
+     highlight top-left, a soft one bottom-right. --hue, --bright and --tilt vary each
+     marble slightly, like the app does from each marble's id. */
   .marble {
-    --light: #f6a06b; --dark: #b2622d;
+    --light: #f6a06b; --dark: #b2622d; --angle: 68deg;
+    --hue: 0deg; --bright: 1; --tilt: 0deg;
     width: var(--s, 46px); height: var(--s, 46px); border-radius: 50%;
-    background: radial-gradient(circle at 34% 28%, #fff9 0, transparent 22%),
-                radial-gradient(circle at 36% 32%, var(--light), var(--dark));
-    box-shadow: inset -3px -4px 8px rgba(0,0,0,.18), 0 3px 6px rgba(60,40,20,.18);
+    background:
+      radial-gradient(circle at 70% 80%, rgba(255,255,255,.45) 0, rgba(255,255,255,0) calc(var(--s, 46px) * .26)),
+      radial-gradient(circle at 31% 25%, rgba(255,255,255,.95) 0, rgba(255,255,255,.5) calc(var(--s, 46px) * .17), rgba(255,255,255,0) calc(var(--s, 46px) * .34)),
+      linear-gradient(calc(var(--angle) + var(--tilt)),
+        rgba(255,255,255,0) calc(50% - var(--s, 46px) * .22),
+        var(--light) calc(50% - var(--s, 46px) * .14),
+        var(--dark) 50%,
+        var(--light) calc(50% + var(--s, 46px) * .14),
+        rgba(255,255,255,0) calc(50% + var(--s, 46px) * .22)),
+      radial-gradient(circle at 50% 52%, rgba(236,247,241,.5) 0, rgba(178,206,190,.55) calc(var(--s, 46px) * .55));
+    box-shadow: 0 0 0 .5px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.12);
+    filter: hue-rotate(var(--hue)) brightness(var(--bright));
     flex: none;
   }
-  .amber { --light: #f6a06b; --dark: #b2622d; }
-  .sage  { --light: #aebf92; --dark: #728157; }
-  .coral { --light: #ffc6a5; --dark: #d67f48; }
-  .moss  { --light: #ccdbb2; --dark: #56633f; }
-  .marble.sealed { filter: saturate(.25) brightness(.92); }
+  .amber { --light: #f6a06b; --dark: #b2622d; --angle: 68deg; }
+  .sage  { --light: #aebf92; --dark: #728157; --angle: 90deg; }
+  .coral { --light: #ffc6a5; --dark: #d67f48; --angle: 112deg; }
+  .moss  { --light: #ccdbb2; --dark: #56633f; --angle: 68deg; }
+  /* Pulled-out marbles on the shelf: plain and sealed, as in the app's SharedJarView. */
+  .shelf-dot { width: 16px; height: 16px; border-radius: 50%; background: linear-gradient(rgba(32,30,29,.35), rgba(32,30,29,.65)); }
 
   /* buttons */
   .btn {
@@ -241,8 +255,8 @@
   }
   .shelf { position: absolute; right: -6px; top: 42px; width: 58px; text-align: center; }
   .shelf .plank { height: 6px; border-radius: 3px; background: #c9b79a; margin-top: 2px; }
-  .shelf .marble { margin: 0 auto; opacity: 0; transform: scale(.4); transition: opacity .35s, transform .45s cubic-bezier(.3,1.6,.5,1); }
-  .shelf .marble.on { opacity: 1; transform: none; }
+  .shelf .shelf-dot { margin: 0 auto; opacity: 0; transform: scale(.4); transition: opacity .35s, transform .45s cubic-bezier(.3,1.6,.5,1); }
+  .shelf .shelf-dot.on { opacity: 1; transform: none; }
   .shelf small { display: block; font-size: 9px; color: var(--muted); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin-top: 4px; }
   .jar-actions { position: absolute; left: 20px; right: 20px; bottom: 12px; display: flex; gap: 10px; transition: opacity .3s; }
   .jar-actions .btn { flex: 1; }
@@ -429,7 +443,7 @@
                 <path d="M54 110 v140" stroke="rgba(255,255,255,.7)" stroke-width="6" stroke-linecap="round"/>
               </svg>
               <div class="pile" id="pile"></div>
-              <div class="shelf"><div class="marble moss sealed" id="shelf-marble" style="--s:26px"></div><div class="plank"></div><small>Shelf</small></div>
+              <div class="shelf"><div class="shelf-dot" id="shelf-marble"></div><div class="plank"></div><small>Shelf</small></div>
             </div>
             <div class="jar-actions" id="jar-actions">
               <div class="btn primary small" id="b-kind">Add kindness</div>
@@ -508,7 +522,7 @@
             </div>
 
             <div class="card" id="card-hurt">
-              <div class="head"><div class="marble moss" style="--s:40px"></div><div><b>A marble that was pulled out</b><small id="hurt-meta">Sealed</small></div></div>
+              <div class="head"><div class="shelf-dot" style="width:40px;height:40px"></div><div><b>A marble that was pulled out</b><small id="hurt-meta">Sealed</small></div></div>
               <div class="sealed-box" id="sealed-box">Sealed. Only the person who wrote it can open it, and only if they want to.</div>
               <div class="mine" id="mine">
                 <p>This one is yours.</p>
