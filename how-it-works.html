@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>How Jar of Marbles works</title>
-<meta name="description" content="A short animated walkthrough of Jar of Marbles: build your circle, leave a marble, and pull one out of your jar.">
+<meta name="description" content="A short animated walkthrough of Jar of Marbles: build your circle, start one jar together, fill it with kindness and hurts, and open it together in person.">
 <style>
   :root {
     --bg: #e7dcc7;
@@ -79,7 +79,7 @@
   .scene.active { opacity: 1; visibility: visible; }
 
   h2.screen-title { font: 700 26px/1.1 var(--serif); margin: 0 0 6px; }
-  .sub { font-size: 13px; color: var(--muted); line-height: 1.4; margin: 0; }
+  .sub { font-size: 13px; color: var(--muted); line-height: 1.4; margin: 0; transition: opacity .3s; }
 
   /* tab bar */
   .tabbar {
@@ -107,6 +107,7 @@
   .sage  { --light: #aebf92; --dark: #728157; }
   .coral { --light: #ffc6a5; --dark: #d67f48; }
   .moss  { --light: #ccdbb2; --dark: #56633f; }
+  .marble.sealed { filter: saturate(.25) brightness(.92); }
 
   /* buttons */
   .btn {
@@ -117,7 +118,55 @@
   .btn.primary { background: var(--accent); color: #fff; }
   .btn.white { background: #fff; border: 1px solid var(--border); color: var(--ink); }
   .btn.black { background: #000; color: #fff; }
+  .btn.small { height: 38px; font-size: 13px; }
   .btn.pressed { transform: scale(.96); }
+
+  /* shared bits */
+  .label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin: 14px 0 7px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { padding: 8px 14px; border-radius: 18px; background: var(--surface); font-size: 13px; font-weight: 600; transition: all .25s; border: 1.5px solid transparent; }
+  .chip.sel { background: var(--accent-tint); color: #643312; border-color: var(--accent); }
+  .chip.pressed { transform: scale(.95); }
+  .editor { background: var(--surface); border-radius: 16px; padding: 11px 14px; min-height: 84px; font-size: 14px; line-height: 1.4; }
+  .editor.one { min-height: 0; }
+  .editor .ph { color: var(--muted); }
+  .caret::after { content: ""; display: inline-block; width: 1.5px; height: 15px; background: var(--accent); margin-left: 1px; vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .hint { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+  .row { display: flex; align-items: center; gap: 12px; background: var(--surface); border-radius: 16px; padding: 10px 14px; }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--avatar-bg); color: var(--avatar-ink);
+            display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex: none; position: relative; }
+  .row b { font-size: 14px; display: block; }
+  .row small { font-size: 11px; color: var(--muted); }
+  .people { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+  .pill { margin-left: auto; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 10px; transition: all .35s; }
+  .pill.invited { background: rgba(32,30,29,.07); color: var(--muted); }
+  .pill.joined { background: var(--avatar-bg); color: var(--avatar-ink); }
+  .dim { position: absolute; inset: 0; background: rgba(32,30,29,.35); opacity: 0; transition: opacity .35s; visibility: hidden; z-index: 5; }
+  .dim.on { opacity: 1; visibility: visible; }
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; background: var(--sheet);
+    border-radius: 26px 26px 0 0; padding: 22px 20px 100px; z-index: 6;
+    transform: translateY(calc(100% + 110px)); transition: transform .5s cubic-bezier(.2,.8,.2,1);
+  }
+  .sheet.on { transform: none; }
+  .prompt { font: italic 400 15px/1.4 var(--serif); margin: 14px 0 8px; }
+  .sheet.tall { top: 64px; padding-top: 20px; }
+  .sheet h3 { margin: 0 0 4px; font: 700 20px var(--serif); }
+  .sheet .btn { margin-top: 12px; }
+  .toast {
+    position: absolute; left: 20px; right: 20px; bottom: 70px; z-index: 7;
+    background: var(--ink); color: #fff; border-radius: 14px; padding: 10px 14px; font-size: 12px; line-height: 1.4;
+    opacity: 0; transform: translateY(8px); transition: opacity .35s, transform .35s;
+  }
+  .toast.on { opacity: 1; transform: none; }
+  .check { display: flex; gap: 9px; align-items: flex-start; font-size: 11px; color: var(--muted); line-height: 1.4; margin-top: 14px; }
+  .box { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--muted); flex: none; position: relative; transition: all .25s; }
+  .box.on { background: var(--accent); border-color: var(--accent); }
+  .box::after { content: ""; position: absolute; left: 5px; top: 1px; width: 5px; height: 10px; border: solid #fff; border-width: 0 2px 2px 0;
+                transform: rotate(45deg) scale(0); transition: transform .2s; }
+  .box.on::after { transform: rotate(45deg) scale(1); }
+  .box.pressed { transform: scale(.9); }
 
   /* ---------- Scene 1: sign in ---------- */
   .s1 { display: flex; flex-direction: column; justify-content: center; text-align: center; padding-top: 30px; }
@@ -127,36 +176,15 @@
   .s1 .btns { display: flex; flex-direction: column; gap: 10px; }
   .s1 .btns .btn { opacity: .5; }
   .s1.agreed .btns .btn { opacity: 1; }
-  .terms { display: flex; gap: 8px; align-items: flex-start; font-size: 11px; color: var(--muted); text-align: left; margin-top: 12px; }
-  .box { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--muted); flex: none; position: relative; transition: all .25s; }
-  .s1.agreed .box { background: var(--accent); border-color: var(--accent); }
-  .box::after { content: ""; position: absolute; left: 5px; top: 1px; width: 5px; height: 10px; border: solid #fff; border-width: 0 2px 2px 0;
-                transform: rotate(45deg) scale(0); transition: transform .2s; }
-  .s1.agreed .box::after { transform: rotate(45deg) scale(1); }
+  .s1 .check { text-align: left; margin-top: 12px; }
   .demo-link { font-size: 12px; font-weight: 600; color: var(--accent-text); margin-top: 14px; }
 
   /* ---------- Scene 2: circle ---------- */
-  .row { display: flex; align-items: center; gap: 12px; background: var(--surface); border-radius: 16px; padding: 12px 14px; }
-  .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--avatar-bg); color: var(--avatar-ink);
-            display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; flex: none; }
-  .row b { font-size: 14px; display: block; }
-  .row small { font-size: 11px; color: var(--muted); }
-  .people { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
   .person-new { max-height: 0; opacity: 0; overflow: hidden; padding-top: 0; padding-bottom: 0; transition: all .5s ease; }
-  .person-new.in { max-height: 64px; opacity: 1; padding-top: 12px; padding-bottom: 12px; }
+  .person-new.in { max-height: 60px; opacity: 1; padding-top: 10px; padding-bottom: 10px; }
   .add-card { margin-top: 12px; border: 1.5px dashed var(--border); border-radius: 16px; padding: 14px; text-align: center;
               font-weight: 600; font-size: 14px; color: var(--accent-text); transition: transform .15s; }
   .add-card.pressed { transform: scale(.97); }
-  .dim { position: absolute; inset: 0; background: rgba(32,30,29,.35); opacity: 0; transition: opacity .35s; visibility: hidden; z-index: 5; }
-  .dim.on { opacity: 1; visibility: visible; }
-  .sheet {
-    position: absolute; left: 0; right: 0; bottom: 0; background: var(--sheet);
-    border-radius: 26px 26px 0 0; padding: 22px 20px 100px; z-index: 6;
-    transform: translateY(105%); transition: transform .5s cubic-bezier(.2,.8,.2,1);
-  }
-  .sheet.on { transform: none; }
-  .sheet h3 { margin: 0 0 14px; font: 700 20px var(--serif); }
-  .sheet .btn { margin-top: 10px; }
   .scanner {
     position: absolute; inset: 0; background: #151311; z-index: 7; opacity: 0; visibility: hidden; transition: opacity .35s;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; color: #fff; text-align: center; padding: 20px;
@@ -184,72 +212,98 @@
   .confirm .nm { font-size: 22px; font-weight: 700; }
   .confirm .ok { font-size: 11px; color: var(--avatar-ink); }
 
-  /* ---------- Scene 3: add a marble ---------- */
-  .label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin: 16px 0 8px; }
-  .chips { display: flex; gap: 8px; }
-  .chip { padding: 8px 14px; border-radius: 18px; background: var(--surface); font-size: 13px; font-weight: 600; transition: all .25s; border: 1.5px solid transparent; }
-  .chip.sel { background: var(--accent-tint); color: #643312; border-color: var(--accent); }
-  .editor { background: var(--surface); border-radius: 16px; padding: 12px 14px; min-height: 92px; font-size: 14px; line-height: 1.4; }
-  .editor .ph { color: var(--muted); }
-  .caret::after { content: ""; display: inline-block; width: 1.5px; height: 15px; background: var(--accent); margin-left: 1px; vertical-align: -2px; animation: blink 1s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
-  .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
-  .picks { display: flex; gap: 14px; }
-  .pick { padding: 3px; border-radius: 50%; border: 2px solid transparent; transition: border-color .25s, transform .25s; }
-  .pick.sel { border-color: var(--accent); transform: scale(1.06); }
-  .drop { position: absolute; left: 20px; right: 20px; bottom: 12px; }
-  .done {
-    position: absolute; inset: 0; background: var(--bg); z-index: 8; opacity: 0; visibility: hidden; transition: opacity .4s;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 0 34px 60px;
-  }
-  .done.on { opacity: 1; visibility: visible; }
-  .done h3 { margin: 10px 0 0; font: 700 24px var(--serif); }
-  .done p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.45; }
-  .done .marble { transform: translateY(-260px); opacity: 0; }
-  .done.on .marble { animation: fall 1s cubic-bezier(.5,0,.9,.6) .1s forwards, none; }
-  @keyframes fall {
-    0% { transform: translateY(-260px); opacity: 0; }
-    15% { opacity: 1; }
-    70% { transform: translateY(0); }
-    82% { transform: translateY(-16px); }
-    100% { transform: translateY(0); opacity: 1; }
-  }
+  /* ---------- Scene 3: start a jar ---------- */
+  .start-card { margin-top: 26px; border: 1.5px dashed var(--border); border-radius: 18px; padding: 22px 16px; text-align: center; transition: transform .15s; }
+  .start-card b { display: block; font-size: 15px; color: var(--accent-text); }
+  .start-card small { display: block; font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
+  .start-card.pressed { transform: scale(.97); }
+  .members { display: none; }
+  .members.on { display: block; }
 
-  /* ---------- Scenes 4 + 5: jar ---------- */
-  .jarwrap { position: relative; height: 330px; margin-top: 8px; }
+  /* ---------- Scenes 4 to 6: the jar ---------- */
+  .jarwrap { position: relative; height: 300px; margin-top: 10px; }
   .jarwrap svg.jar { position: absolute; left: 50%; bottom: 0; width: 210px; margin-left: -105px; overflow: visible; }
-  .pile { position: absolute; left: 50%; bottom: 0; width: 210px; margin-left: -105px; height: 330px; }
-  .pile .marble { position: absolute; opacity: 0; transform: translateY(-340px); }
-  .pile .marble.in { animation: fall2 .9s cubic-bezier(.5,0,.9,.6) forwards; }
-  @keyframes fall2 {
-    0% { opacity: 1; transform: translateY(-340px); }
+  .pile { position: absolute; left: 50%; bottom: 0; width: 210px; margin-left: -105px; height: 300px; }
+  .pile .marble { position: absolute; opacity: 0; }
+  .pile .marble.here { opacity: 1; }
+  .pile .marble.in { animation: fall .9s cubic-bezier(.5,0,.9,.6) forwards; }
+  @keyframes fall {
+    0% { opacity: 1; transform: translateY(-320px); }
     70% { opacity: 1; transform: translateY(0); }
-    84% { opacity: 1; transform: translateY(-12px); }
+    84% { opacity: 1; transform: translateY(-10px); }
     100% { opacity: 1; transform: translateY(0); }
   }
   .pile .marble.out { opacity: 1; animation: rise 1.1s cubic-bezier(.3,.7,.3,1) forwards; z-index: 4; }
   @keyframes rise {
-    0% { opacity: 1; transform: translateY(0) scale(1); }
-    60% { opacity: 1; transform: translateY(-190px) scale(1.5); }
-    100% { opacity: 0; transform: translateY(-230px) scale(1.7); }
+    0% { opacity: 1; transform: translate(0, 0); }
+    55% { opacity: 1; transform: translate(10px, -170px); }
+    100% { opacity: 0; transform: translate(70px, -200px); }
   }
-  .jar-bottom { position: absolute; left: 20px; right: 20px; bottom: 12px; text-align: center; }
-  .pull { opacity: .5; transition: opacity .3s, transform .15s; }
-  .pull.ready { opacity: 1; }
-  .quiet { text-align: center; font-size: 12px; color: var(--muted); margin-top: 8px; transition: opacity .4s; }
+  .shelf { position: absolute; right: -6px; top: 42px; width: 58px; text-align: center; }
+  .shelf .plank { height: 6px; border-radius: 3px; background: #c9b79a; margin-top: 2px; }
+  .shelf .marble { margin: 0 auto; opacity: 0; transform: scale(.4); transition: opacity .35s, transform .45s cubic-bezier(.3,1.6,.5,1); }
+  .shelf .marble.on { opacity: 1; transform: none; }
+  .shelf small { display: block; font-size: 9px; color: var(--muted); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin-top: 4px; }
+  .jar-actions { position: absolute; left: 20px; right: 20px; bottom: 12px; display: flex; gap: 10px; transition: opacity .3s; }
+  .jar-actions .btn { flex: 1; }
+  .jar-actions.off, .propose.off { opacity: 0; pointer-events: none; }
+  .propose { position: absolute; left: 20px; right: 20px; bottom: 12px; transition: opacity .3s; }
+  .push {
+    position: absolute; top: 44px; left: 10px; right: 10px; z-index: 25;
+    display: flex; gap: 10px; align-items: center;
+    background: rgba(249, 244, 237, .97); border-radius: 18px; padding: 10px 12px;
+    box-shadow: 0 10px 24px rgba(40, 25, 10, .22);
+    transform: translateY(-160%); transition: transform .5s cubic-bezier(.2,.8,.2,1);
+  }
+  .push.on { transform: none; }
+  .push .icon { width: 34px; height: 34px; border-radius: 9px; background: var(--surface); display: flex; align-items: center; justify-content: center; flex: none; }
+  .push b { display: block; font-size: 12px; }
+  .push span { display: block; font-size: 11px; color: var(--muted); line-height: 1.35; }
 
-  .reader {
-    position: absolute; left: 0; right: 0; bottom: 0; top: 150px; background: var(--sheet); z-index: 9;
-    border-radius: 28px 28px 0 0; padding: 26px 22px; transform: translateY(105%); transition: transform .55s cubic-bezier(.2,.8,.2,1);
-    display: flex; flex-direction: column; gap: 14px;
+  /* ---------- Scene 7: the code ---------- */
+  .code { display: flex; gap: 10px; justify-content: center; margin: 26px 0 8px; }
+  .code span { width: 50px; height: 62px; border-radius: 14px; background: #fff; border: 1px solid var(--border);
+               display: flex; align-items: center; justify-content: center; font: 700 32px var(--serif); }
+  .valid { text-align: center; font-size: 12px; color: var(--muted); }
+  .who { display: flex; justify-content: center; gap: 14px; margin-top: 30px; }
+  .who div { text-align: center; font-size: 11px; color: var(--muted); font-weight: 600; }
+  .who .avatar { width: 44px; height: 44px; font-size: 16px; margin: 0 auto 6px; opacity: .45; transition: opacity .35s; }
+  .who .avatar.ok { opacity: 1; }
+  .who .avatar::after {
+    content: "✓"; position: absolute; right: -3px; bottom: -3px; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent); color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center;
+    transform: scale(0); transition: transform .3s cubic-bezier(.3,1.6,.5,1);
   }
-  .reader.on { transform: none; }
-  .reader .from { display: flex; align-items: center; gap: 12px; }
-  .reader .from b { font-size: 16px; display: block; }
-  .reader .from small { font-size: 12px; color: var(--muted); }
-  .reader blockquote { margin: 6px 0 0; font: 400 21px/1.35 var(--serif); min-height: 112px; }
-  .reader .fine { font-size: 11px; color: var(--muted); line-height: 1.45; }
-  .reader .btn { margin-top: auto; margin-bottom: 70px; }
+  .who .avatar.ok::after { transform: scale(1); }
+  .count { text-align: center; margin-top: 20px; font-weight: 700; font-size: 14px; }
+  .unlocked { text-align: center; margin-top: 18px; opacity: 0; transform: scale(.9); transition: opacity .4s, transform .4s; }
+  .unlocked.on { opacity: 1; transform: none; }
+  .unlocked b { display: block; font: 700 22px var(--serif); color: var(--accent-text); }
+  .unlocked small { font-size: 12px; color: var(--muted); }
+
+  /* ---------- Scene 8: reveal ---------- */
+  .card {
+    position: absolute; left: 20px; right: 20px; top: 120px;
+    background: var(--sheet); border-radius: 24px; padding: 20px;
+    box-shadow: 0 14px 30px rgba(60, 40, 20, .16);
+    opacity: 0; transform: translateY(14px) scale(.98); transition: opacity .4s, transform .4s;
+    visibility: hidden;
+  }
+  .card.on { opacity: 1; transform: none; visibility: visible; }
+  .card .head { display: flex; align-items: center; gap: 12px; }
+  .card .head b { display: block; font-size: 15px; }
+  .card .head small { font-size: 12px; color: var(--muted); }
+  .card blockquote { margin: 16px 0 0; font: 400 20px/1.35 var(--serif); min-height: 82px; }
+  .sealed-box { margin-top: 16px; border: 1.5px dashed var(--border); border-radius: 16px; padding: 18px; text-align: center; font-size: 12px; color: var(--muted); line-height: 1.45; }
+  .sealed-box.off, .mine.off { display: none; }
+  .mine { margin-top: 14px; }
+  .mine p { margin: 0 0 4px; font-size: 12px; font-weight: 700; color: var(--accent-text); text-align: center; }
+  .mine .btn { margin-top: 8px; }
+  .card .next { margin-top: 16px; }
+  .card .fine { font-size: 11px; color: var(--muted); margin-top: 8px; line-height: 1.4; }
+  .card.end { text-align: center; }
+  .card.end h3 { margin: 10px 0 6px; font: 700 22px var(--serif); }
+  .card.end p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.45; }
 
   /* ---------- finger ---------- */
   .finger {
@@ -271,7 +325,7 @@
 <main class="wrap">
   <div class="stage">
     <div class="phone-box" id="box">
-      <div class="phone" role="img" aria-label="Animated walkthrough of the Jar of Marbles app">
+      <div class="phone" role="img" aria-label="Animated walkthrough of the Jar of Marbles app: build a circle, start a shared jar, add kindness, pull one out for a hurt, and open the jar together in person">
         <div class="screen" id="screen">
           <div class="island"></div>
 
@@ -280,24 +334,25 @@
             <div class="hero">
               <div class="marble amber" style="--s:56px"></div>
               <h1>Jar of Marbles</h1>
-              <div class="tag">A quiet way to tell the people close to you what you noticed about them.</div>
+              <div class="tag">One jar your closest people fill together, and open together.</div>
             </div>
             <div class="btns">
               <div class="btn black" id="b-apple"> Sign in with Apple</div>
               <div class="btn white"><b style="color:var(--accent);font-size:16px">G</b> Sign in with Google</div>
               <div class="btn white">✉ Sign in with email</div>
             </div>
-            <div class="terms"><div class="box" id="terms-box"></div><div>I agree to the Terms of Use and Privacy Policy.</div></div>
+            <div class="check"><div class="box" id="terms-box"></div><div>I agree to the Terms of Use and Privacy Policy.</div></div>
             <div class="demo-link">Just looking? Try a demo</div>
           </section>
 
           <!-- 2. Circle -->
           <section class="scene s2" id="s2">
             <h2 class="screen-title">Your circle</h2>
-            <p class="sub">Your circle defines who can fill your jar. Leave a marble for someone in your circle, only they ever read the words.</p>
+            <p class="sub">Up to 6 people, you included. Add someone in person with their code, or by email.</p>
             <div class="people">
               <div class="row"><div class="avatar">D</div><div><b>Dad</b></div></div>
-              <div class="row person-new" id="maya-row"><div class="avatar">M</div><div><b>Maya Chen</b></div></div>
+              <div class="row"><div class="avatar">P</div><div><b>Priya</b></div></div>
+              <div class="row person-new" id="maya-row"><div class="avatar">M</div><div><b>Maya</b></div></div>
             </div>
             <div class="add-card" id="add-card">Add someone close</div>
 
@@ -305,7 +360,7 @@
             <div class="sheet" id="sheet2">
               <h3>Add someone close</h3>
               <div class="btn white" id="b-email">Add via email</div>
-              <div class="btn primary" id="b-qr">Scan QR code</div>
+              <div class="btn primary" id="b-qr">Scan their code</div>
             </div>
             <div class="scanner" id="scanner">
               <div class="finder" id="finder">
@@ -316,43 +371,56 @@
               <p id="scan-hint">Point your camera at their Jar of Marbles code</p>
               <div class="confirm" id="confirm">
                 <h4>Add to your circle?</h4>
-                <div class="nm">Maya Chen</div>
-                <div class="ok">Verified — this came from a real Jar of Marbles code.</div>
+                <div class="nm">Maya</div>
+                <div class="ok">Verified: this came from a real Jar of Marbles code.</div>
                 <div class="btn primary" id="b-add" style="margin-top:8px">Add</div>
               </div>
             </div>
           </section>
 
-          <!-- 3. Add a marble -->
+          <!-- 3. Start a jar -->
           <section class="scene s3" id="s3">
-            <h2 class="screen-title">Add a marble</h2>
-            <div class="label">Whose jar</div>
-            <div class="chips">
-              <div class="chip" id="c-dad">Dad</div>
-              <div class="chip" id="c-maya">Maya</div>
+            <div id="start-empty">
+              <h2 class="screen-title">Your jar</h2>
+              <p class="sub">A jar is shared by 3 to 6 people from your circle. Everyone has to say yes.</p>
+              <div class="start-card" id="start-card"><b>Start a shared jar</b><small>Fill it together. Open it together, in person.</small></div>
             </div>
-            <div class="label" id="say-label">What would you like to say to them?</div>
-            <div class="editor"><span class="ph" id="ph">e.g. For showing up exactly when you said you would…</span><span id="typed"></span></div>
-            <div class="hint" id="only">Only they will ever read this.</div>
-            <div class="label">Pick the marble</div>
-            <div class="picks">
-              <div class="pick" id="p-amber"><div class="marble amber"></div></div>
-              <div class="pick" id="p-sage"><div class="marble sage"></div></div>
-              <div class="pick" id="p-coral"><div class="marble coral"></div></div>
-              <div class="pick" id="p-moss"><div class="marble moss"></div></div>
+            <div class="members" id="members">
+              <h2 class="screen-title">Sunday Table</h2>
+              <p class="sub" id="members-sub">Waiting for everyone to say yes.</p>
+              <div class="people">
+                <div class="row"><div class="avatar">Y</div><div><b>You</b></div><span class="pill joined">Joined</span></div>
+                <div class="row"><div class="avatar">D</div><div><b>Dad</b></div><span class="pill invited" id="pill-dad">Invited</span></div>
+                <div class="row"><div class="avatar">M</div><div><b>Maya</b></div><span class="pill invited" id="pill-maya">Invited</span></div>
+                <div class="row"><div class="avatar">P</div><div><b>Priya</b></div><span class="pill invited" id="pill-priya">Invited</span></div>
+              </div>
             </div>
-            <div class="btn primary drop" id="b-drop">Drop it in</div>
-            <div class="done" id="done">
-              <div class="marble coral" id="done-marble" style="--s:64px"></div>
-              <h3 id="done-title">It's in Maya's jar</h3>
-              <p id="done-text">Maya sees one more marble. Your words wait until they open it.</p>
+
+            <div class="dim" id="dim3"></div>
+            <div class="sheet tall" id="sheet3">
+              <h3>Start a shared jar</h3>
+              <div class="label">Name</div>
+              <div class="editor one"><span class="ph" id="name-ph">e.g. Sunday Table</span><span id="name-typed"></span></div>
+              <div class="label">Who's in it</div>
+              <div class="chips">
+                <div class="chip" id="c3-dad">Dad</div>
+                <div class="chip" id="c3-maya">Maya</div>
+                <div class="chip" id="c3-priya">Priya</div>
+              </div>
+              <div class="label">Size</div>
+              <div class="chips">
+                <div class="chip" id="sz-small">Small · 4 each</div>
+                <div class="chip" id="sz-standard">Standard · 6 each</div>
+              </div>
+              <div class="check"><div class="box" id="safe-box"></div><div>I understand this isn't therapy, and isn't right for a group where anyone feels unsafe.</div></div>
+              <div class="btn primary" id="b-invite">Send invitations</div>
             </div>
           </section>
 
-          <!-- 4 + 5. Your jar -->
-          <section class="scene s4" id="s4">
-            <h2 class="screen-title">Your jar</h2>
-            <p class="sub" id="jar-status">Your jar is empty, for now.</p>
+          <!-- 4 to 6. The jar -->
+          <section class="scene s-jar" id="s-jar">
+            <h2 class="screen-title">Sunday Table</h2>
+            <p class="sub" id="jar-sub"></p>
             <div class="jarwrap">
               <svg class="jar" viewBox="0 0 210 300" aria-hidden="true">
                 <rect x="55" y="6" width="100" height="26" rx="8" fill="#c9b79a"/>
@@ -361,23 +429,111 @@
                 <path d="M54 110 v140" stroke="rgba(255,255,255,.7)" stroke-width="6" stroke-linecap="round"/>
               </svg>
               <div class="pile" id="pile"></div>
+              <div class="shelf"><div class="marble moss sealed" id="shelf-marble" style="--s:26px"></div><div class="plank"></div><small>Shelf</small></div>
             </div>
-            <div class="jar-bottom">
-              <div class="btn primary pull" id="b-pull">Pull one out</div>
-              <div class="quiet" id="quiet">No pings, no counters — marbles just turn up.</div>
+            <div class="jar-actions" id="jar-actions">
+              <div class="btn primary small" id="b-kind">Add kindness</div>
+              <div class="btn white small" id="b-hurt">Pull one out</div>
             </div>
-            <div class="reader" id="reader">
-              <div class="from"><div class="avatar" style="width:44px;height:44px">M</div><div><b>Maya</b><small>Today</small></div></div>
-              <blockquote id="quote"></blockquote>
-              <div class="fine">This marble will disappear after a while, you can come back to it as many times as you would like before that.</div>
-              <div class="btn white" id="b-close">Close</div>
+            <div class="propose off" id="propose"><div class="btn primary" id="b-propose">Propose a time to open it</div></div>
+            <div class="toast" id="toast"></div>
+
+            <div class="dim" id="dim-jar"></div>
+            <div class="sheet tall" id="kind-sheet">
+              <h3>Add kindness</h3>
+              <div class="label">For</div>
+              <div class="chips">
+                <div class="chip" id="k-dad">Dad</div>
+                <div class="chip" id="k-maya">Maya</div>
+                <div class="chip" id="k-priya">Priya</div>
+              </div>
+              <div class="label" id="k-say">What did you notice?</div>
+              <div class="editor"><span class="ph" id="k-ph">e.g. For showing up exactly when you said you would…</span><span id="k-typed"></span></div>
+              <div class="hint">Sealed until the whole jar opens it together.</div>
+              <div class="label">Pick the marble</div>
+              <div class="chips">
+                <div class="chip" id="p-amber" style="padding:3px"><div class="marble amber" style="--s:30px"></div></div>
+                <div class="chip" id="p-sage" style="padding:3px"><div class="marble sage" style="--s:30px"></div></div>
+                <div class="chip" id="p-coral" style="padding:3px"><div class="marble coral" style="--s:30px"></div></div>
+                <div class="chip" id="p-moss" style="padding:3px"><div class="marble moss" style="--s:30px"></div></div>
+              </div>
+              <div class="btn primary" id="b-seal">Seal it in</div>
+            </div>
+            <div class="sheet tall" id="hurt-sheet">
+              <h3>Pull one out</h3>
+              <p class="sub">For something that hurt. It takes a marble out of the jar.</p>
+              <div class="prompt">When ___ happened, I felt ___, and I need ___.</div>
+              <div class="editor" style="min-height:104px"><span class="ph" id="h-ph">Say what happened, how it felt, and what you need.</span><span id="h-typed"></span></div>
+              <div class="hint">No one in the jar will see who wrote this. We keep a private record only in case it's reported.</div>
+              <div class="btn primary" id="b-pullout">Pull it out</div>
+            </div>
+            <div class="sheet" id="prop-sheet">
+              <h3>When shall we open it?</h3>
+              <p class="sub">Pick a time you can all be in the same room.</p>
+              <div class="label">Time</div>
+              <div class="chips">
+                <div class="chip" id="t-fri">Friday, 8 pm</div>
+                <div class="chip" id="t-sat">Saturday, 7 pm</div>
+              </div>
+              <div class="hint">Everyone gets a nudge. The proposal lasts 7 days.</div>
+              <div class="btn primary" id="b-prop-send">Propose</div>
+            </div>
+          </section>
+
+          <!-- 7. Open it together -->
+          <section class="scene s7" id="s7">
+            <h2 class="screen-title">Open Sunday Table</h2>
+            <p class="sub">You're hosting. Show this code to everyone in the room.</p>
+            <div class="code"><span>4</span><span>8</span><span>1</span><span>7</span></div>
+            <div class="valid">Valid for 10 minutes</div>
+            <div class="who">
+              <div><div class="avatar ok">Y</div>You</div>
+              <div><div class="avatar" id="w-dad">D</div>Dad</div>
+              <div><div class="avatar" id="w-maya">M</div>Maya</div>
+              <div><div class="avatar" id="w-priya">P</div>Priya</div>
+            </div>
+            <div class="count" id="count">1 of 4 have entered the code</div>
+            <div class="unlocked" id="unlocked"><b>Unlocked</b><small>Everyone's here. Nothing opens unless all of you are.</small></div>
+          </section>
+
+          <!-- 8. Reveal -->
+          <section class="scene s8" id="s8">
+            <h2 class="screen-title">Reading together</h2>
+            <p class="sub" id="reveal-sub">One at a time, on every phone</p>
+
+            <div class="card" id="card-kind">
+              <div class="head"><div class="avatar" style="width:40px;height:40px">D</div><div><b>From Dad, for Maya</b><small>Kindness</small></div></div>
+              <blockquote id="kind-quote"></blockquote>
+              <div class="btn white small next" id="b-next1">Next marble</div>
+            </div>
+
+            <div class="card" id="card-hurt">
+              <div class="head"><div class="marble moss" style="--s:40px"></div><div><b>A marble that was pulled out</b><small id="hurt-meta">Sealed</small></div></div>
+              <div class="sealed-box" id="sealed-box">Sealed. Only the person who wrote it can open it, and only if they want to.</div>
+              <div class="mine" id="mine">
+                <p>This one is yours.</p>
+                <div class="btn primary small" id="b-share">Share it</div>
+                <div class="btn white small">Pass for tonight</div>
+              </div>
+              <blockquote id="hurt-quote" style="display:none"></blockquote>
+              <div class="fine" id="hurt-fine" style="display:none">Shared without a name.</div>
+            </div>
+
+            <div class="card end" id="card-end">
+              <div class="marble coral" style="--s:46px;margin:0 auto"></div>
+              <h3>That's every marble</h3>
+              <p>What you read tonight is deleted. Sunday Table starts again, empty, with the same four of you.</p>
             </div>
           </section>
 
           <div class="tabbar" aria-hidden="true">
             <div class="tab" id="t-jar"><svg viewBox="0 0 24 24"><path d="M8 3h8M9 3v3c-2 1-3 2-3 4v8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3v-8c0-2-1-3-3-4V3"/></svg>Jar</div>
-            <div class="tab" id="t-add"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Add</div>
             <div class="tab" id="t-circle"><svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="3.2"/><circle cx="17" cy="10" r="2.4"/><path d="M3.5 19c.6-3 3-4.5 5.5-4.5s4.9 1.5 5.5 4.5M15 15c2.5-.3 4.7.9 5.5 3.5"/></svg>Circle</div>
+          </div>
+
+          <div class="push" id="push">
+            <div class="icon"><div class="marble amber" style="--s:20px"></div></div>
+            <div><b>Sunday Table is full</b><span>Time to find a moment to open it together.</span></div>
           </div>
 
           <div class="finger" id="finger"></div>

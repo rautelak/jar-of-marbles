@@ -2,17 +2,20 @@
   if (window.self !== window.top) document.documentElement.classList.add('embedded');
   const $ = id => document.getElementById(id);
   const screen = $('screen'), finger = $('finger'), box = $('box');
-  const scenes = [$('s1'), $('s2'), $('s3'), $('s4'), $('s4')];
+  const jar = $('s-jar');
+  const scenes = [$('s1'), $('s2'), $('s3'), jar, jar, jar, $('s7'), $('s8')];
   const caption = $('caption');
   const captions = [
     'Sign in your way',
-    'Add people close to you',
-    'Leave them a marble',
-    'Marbles arrive quietly',
-    'Pull one out when you\'re ready',
+    'Build your circle',
+    'Start one jar, together',
+    'Add kindness for someone',
+    'Pull one out when something hurts',
+    'When it fills, pick a time',
+    'Open it in person, all of you',
+    'Read them, one at a time',
   ];
-  const tabs = { jar: $('t-jar'), add: $('t-add'), circle: $('t-circle') };
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const tabs = { jar: $('t-jar'), circle: $('t-circle') };
 
   let scale = 1, runId = 0, paused = false;
 
@@ -55,34 +58,53 @@
     const p = point(el);
     finger.classList.add('show');
     finger.style.left = p.x + 'px'; finger.style.top = p.y + 'px';
-    await sleep(650, id);
+    await sleep(600, id);
     finger.classList.add('tap'); el.classList.add('pressed');
-    await sleep(170, id);
+    await sleep(160, id);
     finger.classList.remove('tap'); el.classList.remove('pressed');
     if (then) then();
-    await sleep(250, id);
+    await sleep(230, id);
   }
   const hideFinger = () => { finger.classList.remove('show'); finger.style.top = '700px'; };
 
   function setTab(name) { Object.entries(tabs).forEach(([k, el]) => el.classList.toggle('on', k === name)); }
-  async function type(el, text, id) {
+  async function type(el, text, id, speed = 34) {
     el.textContent = '';
-    for (const ch of text) { el.textContent += ch; await sleep(38, id); }
+    for (const ch of text) { el.textContent += ch; await sleep(speed, id); }
+  }
+  const on = (...ids) => ids.forEach(i => $(i).classList.add('on'));
+  const off = (...ids) => ids.forEach(i => $(i).classList.remove('on'));
+  const sel = (...ids) => ids.forEach(i => $(i).classList.add('sel'));
+
+  async function toast(text, id, ms = 2200) {
+    $('toast').textContent = text; on('toast');
+    await sleep(ms, id);
+    off('toast');
   }
 
-  /* ----- jar marbles ----- */
-  const spots = [
-    { x: 58, y: 232, c: 'coral' }, { x: 100, y: 236, c: 'amber' }, { x: 142, y: 232, c: 'sage' },
-    { x: 78, y: 196, c: 'moss' }, { x: 122, y: 198, c: 'amber' }, { x: 100, y: 160, c: 'coral' },
+  /* ----- the jar: 16 spots (4 people x 4 marbles, a "small" jar) ----- */
+  const CAPACITY = 16;
+  // Rows from the bottom up, so a full jar is filled to the neck. Coordinates are the jar drawing's.
+  const SIZE = 38;
+  const rows = [
+    { y: 268, xs: [66, 105, 144] }, { y: 232, xs: [72, 111, 150] }, { y: 196, xs: [64, 103, 142] },
+    { y: 160, xs: [70, 109, 148] }, { y: 124, xs: [66, 105, 144] }, { y: 88, xs: [105] },
   ];
+  const colours = ['coral', 'amber', 'sage', 'moss'];
   const pile = $('pile');
-  spots.forEach((s, i) => {
+  let n = 0;
+  rows.forEach(r => r.xs.forEach(x => {
     const m = document.createElement('div');
-    m.className = 'marble ' + s.c; m.style.setProperty('--s', '40px');
-    m.style.left = s.x - 20 + 'px'; m.style.top = s.y + 20 + 'px';
-    m.dataset.i = i; pile.appendChild(m);
-  });
+    m.className = 'marble ' + colours[n++ % 4];
+    m.style.setProperty('--s', SIZE + 'px');
+    m.style.left = x - SIZE / 2 + 'px'; m.style.top = r.y - SIZE / 2 + 'px';
+    pile.appendChild(m);
+  }));
   const jarMarbles = [...pile.children];
+  const strip = m => { m.classList.remove('here', 'in', 'out'); };
+  function setFill(count) { jarMarbles.forEach((m, i) => { strip(m); if (i < count) m.classList.add('here'); }); }
+  const fillText = (count, shelf) =>
+    `${count} of ${CAPACITY} marbles${shelf ? ` · ${shelf} on the shelf` : ''} · sealed until you open it together`;
 
   /* ----- QR decoration ----- */
   (() => {
@@ -93,117 +115,199 @@
   /* ----- scene resets ----- */
   function resetAll() {
     hideFinger();
-    $('s1').classList.remove('agreed');
+    // 1
+    $('s1').classList.remove('agreed'); off('terms-box');
+    // 2
     $('maya-row').classList.remove('in');
-    ['dim2', 'sheet2', 'scanner'].forEach(i => $(i).classList.remove('on'));
-    $('confirm').classList.remove('on'); $('laser').classList.remove('go');
-    $('scan-hint').style.display = '';
-    $('finder').style.display = '';
-    ['c-dad', 'c-maya', 'p-amber', 'p-sage', 'p-coral', 'p-moss'].forEach(i => $(i).classList.remove('sel'));
-    $('typed').textContent = ''; $('ph').style.display = '';
-    $('typed').classList.remove('caret');
-    $('say-label').textContent = 'What would you like to say to them?';
-    $('only').textContent = 'Only they will ever read this.';
-    $('done').classList.remove('on');
-    $('reader').classList.remove('on');
-    $('quote').textContent = '';
-    $('b-pull').classList.remove('ready');
-    $('quiet').style.opacity = 1;
-    $('jar-status').textContent = 'Your jar is empty, for now.';
-    jarMarbles.forEach(m => { m.className = m.className.replace(/\b(in|out)\b/g, '').trim(); });
+    off('dim2', 'sheet2', 'scanner', 'confirm'); $('laser').classList.remove('go');
+    $('scan-hint').style.display = ''; $('finder').style.display = '';
+    // 3
+    $('start-empty').style.display = ''; off('members', 'dim3', 'sheet3', 'safe-box');
+    $('name-typed').textContent = ''; $('name-typed').classList.remove('caret'); $('name-ph').style.display = '';
+    ['c3-dad', 'c3-maya', 'c3-priya', 'sz-small', 'sz-standard', 'k-dad', 'k-maya', 'k-priya',
+     'p-amber', 'p-sage', 'p-coral', 'p-moss', 't-fri', 't-sat'].forEach(i => $(i).classList.remove('sel'));
+    ['pill-dad', 'pill-maya', 'pill-priya'].forEach(i => { $(i).className = 'pill invited'; $(i).textContent = 'Invited'; });
+    $('members-sub').textContent = 'Waiting for everyone to say yes.';
+    // 4 to 6
+    off('dim-jar', 'kind-sheet', 'hurt-sheet', 'prop-sheet', 'toast', 'push', 'shelf-marble');
+    $('jar-actions').classList.remove('off'); $('propose').classList.add('off');
+    ['k-typed', 'h-typed'].forEach(i => { $(i).textContent = ''; $(i).classList.remove('caret'); });
+    $('k-ph').style.display = ''; $('h-ph').style.display = '';
+    $('k-say').textContent = 'What did you notice?';
+    setFill(0);
+    // 7
+    ['w-dad', 'w-maya', 'w-priya'].forEach(i => $(i).classList.remove('ok'));
+    $('count').textContent = '1 of 4 have entered the code'; off('unlocked');
+    // 8
+    off('card-kind', 'card-hurt', 'card-end');
+    $('kind-quote').textContent = ''; $('hurt-quote').textContent = '';
+    $('hurt-quote').style.display = 'none'; $('hurt-fine').style.display = 'none';
+    $('sealed-box').classList.remove('off'); $('mine').classList.remove('off');
+    $('hurt-meta').textContent = 'Sealed';
+    $('reveal-sub').textContent = 'One at a time, on every phone';
   }
 
-  /* ----- the five scenes ----- */
-    const play = [
+  /* ----- the scenes ----- */
+  const play = [
     async id => { // 1 sign in
       setTab(null);
       await sleep(900, id);
-      await tap($('terms-box'), id, () => $('s1').classList.add('agreed'));
-      await sleep(600, id);
+      await tap($('terms-box'), id, () => { $('s1').classList.add('agreed'); on('terms-box'); });
+      await sleep(500, id);
       await tap($('b-apple'), id);
-      await sleep(1500, id);
+      await sleep(1300, id);
     },
-    async id => { // 2 circle
+
+    async id => { // 2 circle: add Maya by scanning her code
       setTab('circle');
       await sleep(900, id);
-      await tap($('add-card'), id, () => { $('dim2').classList.add('on'); $('sheet2').classList.add('on'); });
-      await sleep(800, id);
-      await tap($('b-qr'), id, () => { $('sheet2').classList.remove('on'); $('dim2').classList.remove('on'); $('scanner').classList.add('on'); $('laser').classList.add('go'); });
+      await tap($('add-card'), id, () => on('dim2', 'sheet2'));
+      await sleep(700, id);
+      await tap($('b-qr'), id, () => { off('sheet2', 'dim2'); on('scanner'); $('laser').classList.add('go'); });
       hideFinger();
-      await sleep(2600, id);
+      await sleep(2300, id);
       $('laser').classList.remove('go'); $('finder').style.display = 'none'; $('scan-hint').style.display = 'none';
-      $('confirm').classList.add('on');
-      await sleep(1100, id);
-      await tap($('b-add'), id, () => { $('scanner').classList.remove('on'); $('confirm').classList.remove('on'); });
+      on('confirm');
+      await sleep(1000, id);
+      await tap($('b-add'), id, () => off('scanner', 'confirm'));
       hideFinger();
-      await sleep(500, id);
+      await sleep(400, id);
       $('maya-row').classList.add('in');
-      await sleep(2800, id);
+      await sleep(2300, id);
     },
-    async id => { // 3 add a marble (Maya, then Dad)
+
+    async id => { // 3 start a jar, everyone says yes
       setTab('jar');
+      await sleep(900, id);
+      await tap($('start-card'), id, () => on('dim3', 'sheet3'));
       await sleep(500, id);
-      await tap($('t-add'), id, () => setTab('add'));
-      await sleep(500, id);
-      const leave = async (chip, name, text, pick, marbleClass) => {
-        await tap($(chip), id, () => {
-          $(chip).classList.add('sel');
-          $('say-label').textContent = `What would you like to say to ${name}?`;
-          $('only').textContent = `Only ${name} will ever read this.`;
-        });
-        await tap($('ph'), id, () => { $('ph').style.display = 'none'; $('typed').classList.add('caret'); });
-        hideFinger();
-        await type($('typed'), text, id);
-        await sleep(400, id);
-        await tap($(pick), id, () => $(pick).classList.add('sel'));
-        await sleep(300, id);
-        $('done-marble').className = 'marble ' + marbleClass;
-        $('done-title').textContent = `It's in ${name}'s jar`;
-        $('done-text').textContent = `${name} sees one more marble. Your words wait until they open it.`;
-        await tap($('b-drop'), id, () => $('done').classList.add('on'));
-        hideFinger();
-        await sleep(2600, id);
-      };
-      await leave('c-maya', 'Maya', 'For showing up exactly when you said you would.', 'p-coral', 'coral');
-      // back to a fresh form for the next marble
-      $('done').classList.remove('on');
-      ['c-dad', 'c-maya', 'p-amber', 'p-sage', 'p-coral', 'p-moss'].forEach(i => $(i).classList.remove('sel'));
-      $('typed').textContent = ''; $('typed').classList.remove('caret'); $('ph').style.display = '';
-      $('say-label').textContent = 'What would you like to say to them?';
-      $('only').textContent = 'Only they will ever read this.';
-      await sleep(900, id);
-      await leave('c-dad', 'Dad', 'Thank you for teaching me to ride a bike.', 'p-sage', 'sage');
-    },
-    async id => { // 4 jar fills
-      setTab('jar');
-      $('b-pull').classList.remove('ready');
-      await sleep(900, id);
-      for (let i = 0; i < jarMarbles.length; i++) {
-        jarMarbles[i].classList.add('in');
-        if (i === 0) $('jar-status').textContent = 'Your jar is filling up.';
-        await sleep(i < 3 ? 700 : 450, id);
-      }
-      await sleep(1500, id);
-    },
-    async id => { // 5 pull one out
-      setTab('jar');
-      jarMarbles.forEach(m => m.classList.add('in'));
-      $('jar-status').textContent = 'Your jar is filling up.';
-      $('b-pull').classList.add('ready');
-      await sleep(900, id);
-      await tap($('b-pull'), id, () => { $('quiet').style.opacity = 0; jarMarbles[5].classList.remove('in'); jarMarbles[5].classList.add('out'); });
+      await tap($('name-ph'), id, () => { $('name-ph').style.display = 'none'; $('name-typed').classList.add('caret'); });
       hideFinger();
-      await sleep(900, id);
-      $('reader').classList.add('on');
-      await sleep(900, id);
-      await type($('quote'), 'For showing up exactly when you said you would.', id);
+      await type($('name-typed'), 'Sunday Table', id, 55);
+      $('name-typed').classList.remove('caret');
+      for (const chip of ['c3-dad', 'c3-maya', 'c3-priya']) await tap($(chip), id, () => sel(chip));
+      await tap($('sz-small'), id, () => sel('sz-small'));
+      await tap($('safe-box'), id, () => on('safe-box'));
+      await sleep(300, id);
+      await tap($('b-invite'), id, () => { off('sheet3', 'dim3'); $('start-empty').style.display = 'none'; on('members'); });
+      hideFinger();
+      await sleep(1300, id);
+      for (const who of ['dad', 'priya', 'maya']) {
+        $(`pill-${who}`).className = 'pill joined'; $(`pill-${who}`).textContent = 'Joined';
+        await sleep(850, id);
+      }
+      $('members-sub').textContent = "Everyone's in. Time to fill it.";
       await sleep(2200, id);
+    },
+
+    async id => { // 4 add kindness for Maya
+      setTab('jar');
+      setFill(6); $('jar-sub').textContent = fillText(6, 0);
+      await sleep(1100, id);
+      await tap($('b-kind'), id, () => on('dim-jar', 'kind-sheet'));
+      await sleep(400, id);
+      await tap($('k-maya'), id, () => { sel('k-maya'); $('k-say').textContent = 'What did you notice about Maya?'; });
+      await tap($('k-ph'), id, () => { $('k-ph').style.display = 'none'; $('k-typed').classList.add('caret'); });
+      hideFinger();
+      await type($('k-typed'), 'For staying late to help me set up, without being asked.', id);
+      await sleep(300, id);
+      await tap($('p-coral'), id, () => sel('p-coral'));
+      await tap($('b-seal'), id, () => off('kind-sheet', 'dim-jar'));
+      hideFinger();
+      await sleep(300, id);
+      jarMarbles[6].className = 'marble coral in';
+      await sleep(800, id);
+      $('jar-sub').textContent = fillText(7, 0);
+      await toast('Sealed in. Maya reads it when you open the jar together.', id, 2600);
+    },
+
+    async id => { // 5 pull one out for a hurt
+      setTab('jar');
+      setFill(11); $('jar-sub').textContent = fillText(11, 0);
+      await sleep(1100, id);
+      await tap($('b-hurt'), id, () => on('dim-jar', 'hurt-sheet'));
+      await sleep(400, id);
+      await tap($('h-ph'), id, () => { $('h-ph').style.display = 'none'; $('h-typed').classList.add('caret'); });
+      hideFinger();
+      await type($('h-typed'), 'When plans changed at the last minute, I felt left out, and I need a heads-up next time.', id, 30);
+      await sleep(500, id);
+      await tap($('b-pullout'), id, () => off('hurt-sheet', 'dim-jar'));
+      hideFinger();
+      await sleep(300, id);
+      jarMarbles[10].classList.remove('here'); jarMarbles[10].classList.add('out');
+      await sleep(900, id);
+      on('shelf-marble');
+      $('jar-sub').textContent = fillText(10, 1);
+      await toast("Pulled out. No one in the jar can see who wrote it.", id, 2600);
+    },
+
+    async id => { // 6 the jar is full: pick a time
+      setTab('jar');
+      setFill(CAPACITY); on('shelf-marble');
+      $('jar-sub').textContent = `Full: ${CAPACITY} of ${CAPACITY} marbles · 1 on the shelf`;
+      $('jar-actions').classList.add('off'); $('propose').classList.remove('off');
+      await sleep(900, id);
+      on('push');
+      await sleep(2400, id);
+      off('push');
+      await sleep(600, id);
+      await tap($('b-propose'), id, () => on('dim-jar', 'prop-sheet'));
+      await sleep(500, id);
+      await tap($('t-sat'), id, () => sel('t-sat'));
+      await sleep(300, id);
+      await tap($('b-prop-send'), id, () => off('prop-sheet', 'dim-jar'));
+      hideFinger();
+      $('propose').classList.add('off');
+      $('jar-sub').textContent = 'Opening Saturday, 7 pm, in person. Everyone has been nudged.';
+      await sleep(2600, id);
+    },
+
+    async id => { // 7 the host shows a code; everyone enters it
+      setTab('jar');
+      await sleep(1600, id);
+      const people = [['w-dad', 2], ['w-maya', 3], ['w-priya', 4]];
+      for (const [who, count] of people) {
+        $(who).classList.add('ok');
+        $('count').textContent = `${count} of 4 have entered the code`;
+        await sleep(1000, id);
+      }
+      on('unlocked');
+      await sleep(2600, id);
+    },
+
+    async id => { // 8 read them one at a time
+      setTab('jar');
+      $('reveal-sub').textContent = 'Marble 1 of 17, on every phone';
+      on('card-kind');
+      await sleep(700, id);
+      await type($('kind-quote'), 'Thank you for driving everyone to practice all winter.', id);
+      await sleep(1400, id);
+      await tap($('b-next1'), id, () => off('card-kind'));
+      hideFinger();
+      $('reveal-sub').textContent = 'Marble 2 of 17, on every phone';
+      await sleep(400, id);
+      on('card-hurt');
+      await sleep(1600, id);
+      await tap($('b-share'), id, () => {
+        $('sealed-box').classList.add('off'); $('mine').classList.add('off');
+        $('hurt-meta').textContent = 'Shared'; $('hurt-quote').style.display = '';
+      });
+      hideFinger();
+      await type($('hurt-quote'), 'When plans changed at the last minute, I felt left out, and I need a heads-up next time.', id, 28);
+      $('hurt-fine').style.display = '';
+      await sleep(2200, id);
+      off('card-hurt');
+      $('reveal-sub').textContent = 'All 17 read';
+      await sleep(400, id);
+      on('card-end');
+      await sleep(3000, id);
     },
   ];
 
   /* ----- caption + scene visibility ----- */
   function showStep(i) {
-    scenes.forEach((s, n) => s.classList.toggle('active', n === i || (i === 4 && n === 3) || (i === 3 && n === 4)));
+    scenes.forEach((s, k) => { if (s !== scenes[i]) s.classList.remove('active'); });
+    scenes[i].classList.add('active');
     caption.classList.add('out');
     setTimeout(() => { caption.textContent = captions[i]; caption.classList.remove('out'); }, 300);
   }
@@ -224,9 +328,11 @@
   }
 
   // Only animate while on screen, so it doesn't run in a background tab or off-page.
+  // how-it-works.html?scene=5 starts at scene 5 (handy when editing one scene).
+  const first = Math.min(play.length, Math.max(1, Number(new URLSearchParams(location.search).get('scene')) || 1)) - 1;
   let started_ = false;
   const io = new IntersectionObserver(([en]) => {
-    if (en.isIntersecting && !started_) { started_ = true; run(0); }
+    if (en.isIntersecting && !started_) { started_ = true; run(first); }
     else if (started_) paused = !en.isIntersecting;
   }, { threshold: 0.25 });
   io.observe(box);
